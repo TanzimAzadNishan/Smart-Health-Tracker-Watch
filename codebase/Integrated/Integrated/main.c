@@ -38,6 +38,13 @@ uint8_t c=0,I_RH,D_RH,I_Temp,D_Temp,CheckSum;
 
 char disp[16]="0000000000000001";
 char result[8] = "00000001";
+char ds18b20_temp[14];
+char dht11_temp_main[5];
+char dht11_temp_fraction[5];
+char dht11_hum_main[5];
+char dht11_hum_fraction[5];
+char pulse_bpm[4];
+int reading_cnt = 0;
 
 
 void ADC_Init(){
@@ -62,6 +69,88 @@ uint16_t ADC_Read(char channel){
 	voltage = result * 5.0 / 1024;
 	
 	return result;
+}
+
+
+void uart_init(void){
+	int UBBRValue = 12;
+	UBRRH = (unsigned char) (UBBRValue >> 8);
+	UBRRL = (unsigned char) UBBRValue;
+	UCSRA = 0x02;
+	UCSRB = (1 << RXEN) | (1 << TXEN);    //Enable the receiver and transmitter
+	UCSRC = 0b10000110;	
+}
+
+void uart_send(char data){
+	while((UCSRA & (1<<UDRE)) == 0);
+	UDR = data;
+}
+
+void sendToArduino(){
+	//_delay_ms(3000);
+	int i = 0;
+	while (pulse_bpm[i] != 0x00)
+	{
+		uart_send(pulse_bpm[i]);
+		i++;
+	}
+			
+	_delay_ms(1000);
+	
+	/*char dht11_temp[10];
+	strcpy(dht11_temp, dht11_temp_main);
+	strcat(dht11_temp, ".");
+	strcat(dht11_temp, dht11_temp_fraction);*/
+			
+	i = 0;
+	while (dht11_temp_main[i] != 0x00)
+	{
+		uart_send(dht11_temp_main[i]);
+		i++;
+	}
+			
+	_delay_ms(1000);
+
+	i = 0;
+	while (dht11_temp_fraction[i] != 0x00)
+	{
+		uart_send(dht11_temp_fraction[i]);
+		i++;
+	}
+	
+	_delay_ms(1000);
+	
+	/*char dht11_hum[10];
+	strcpy(dht11_hum, dht11_hum_main);
+	strcat(dht11_hum, ".");
+	strcat(dht11_hum, dht11_hum_fraction);*/
+	
+	i = 0;
+	while (dht11_hum_main[i] != 0x00)
+	{
+		uart_send(dht11_hum_main[i]);
+		i++;
+	}
+	
+	_delay_ms(1000);
+	
+	i = 0;
+	while (dht11_hum_fraction[i] != 0x00)
+	{
+		uart_send(dht11_hum_fraction[i]);
+		i++;
+	}
+	
+	_delay_ms(1000);
+	
+	i = 0;
+	while (ds18b20_temp[i] != 0x00)
+	{
+		uart_send(ds18b20_temp[i]);
+		i++;
+	}
+	
+	_delay_ms(1000);				
 }
 
 
@@ -138,7 +227,7 @@ void therm_write_byte(uint8_t byte){
 #define THERM_DECIMAL_STEPS_12BIT 0.0625
 void therm_read_temperature(){
 	// Buffer length must be at least 12bytes long! ["+XXX.XXXX C"]
-	char buffer[14];
+	//char buffer[14];
 	uint8_t temperature[2];
 	int8_t digit;
 	uint16_t decimal;
@@ -164,10 +253,10 @@ void therm_read_temperature(){
 	digit|=(temperature[1]&0x7)<<4;
 
 	decimal=temperature[0]&0xff;
-	sprintf(buffer, "%d.%d", digit, (int)decimal/10);
+	sprintf(ds18b20_temp, "%d.%d", digit, (int)decimal/10);
 	
 	lcd_gotoxy(3,1);
-	lcd_puts(buffer);
+	lcd_puts(ds18b20_temp);
 }
 
 
@@ -213,7 +302,7 @@ int main(void)
 	lcd_backlight(1);
 	_delay_ms(200);
 	
-	char data[5];
+	//char data[5];
 
 	lcd_clrscr();
 	lcd_gotoxy(0,0);
@@ -234,10 +323,11 @@ int main(void)
 	DDRA = 0x00;
 		
 	ADC_Init();
-	
+	uart_init();
 	
 	while(1)
 	{
+		reading_cnt++;
 		Request();				
 		Response();				
 		I_RH=Receive_data();	
@@ -254,29 +344,29 @@ int main(void)
 		    
 		else
 		{
-			itoa(I_RH,data,10);
+			itoa(I_RH,dht11_hum_main,10);
 			lcd_gotoxy(2,0);
-			lcd_puts(data);
+			lcd_puts(dht11_hum_main);
 			lcd_puts(".");
 			    
-			itoa(D_RH,data,10);
-			lcd_puts(data);
+			itoa(D_RH,dht11_hum_fraction,10);
+			lcd_puts(dht11_hum_fraction);
 			lcd_puts("%");
 
-			itoa(I_Temp,data,10);
+			itoa(I_Temp,dht11_temp_main,10);
 			lcd_gotoxy(11,1);
-			lcd_puts(data);
+			lcd_puts(dht11_temp_main);
 			lcd_puts(".");
 			    
-			itoa(D_Temp,data,10);
-			lcd_puts(data);
+			itoa(D_Temp,dht11_temp_fraction,10);
+			lcd_puts(dht11_temp_fraction);
 			lcd_puts("C");
 		}
 		    
-		_delay_ms(500);
+		_delay_ms(300);
 		
 		therm_read_temperature();
-		_delay_ms(500);
+		_delay_ms(300);
 		
 		int i = 0;
 		uint16_t thresh=550;
@@ -289,7 +379,7 @@ int main(void)
 		int h=0;
 		int l=1023;
 	
-		char val[4];
+		//char val[4];
 		
 		for(i = 0; i < 38; i++){
 			
@@ -309,10 +399,14 @@ int main(void)
 			_delay_ms(200);
 		}
 		
-		itoa(count*6,val,10);
+		itoa(count*6,pulse_bpm,10);
 		
 		lcd_gotoxy(13,0);
-		lcd_puts(val);		
+		lcd_puts(pulse_bpm);
+		
+		if(reading_cnt % 5 == 0){
+			sendToArduino();
+		}	
 				
 	}
 }
