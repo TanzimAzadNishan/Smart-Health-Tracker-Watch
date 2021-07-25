@@ -1,11 +1,14 @@
 #include <SoftwareSerial.h>
 SoftwareSerial SIM900A(10,11);
 
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+
 #include <Wire.h>
-#include <MPU6050.h>
 
-MPU6050 mpu;
-
+Adafruit_MPU6050 mpu;
+int delay_cnt = 0;
+int footstep = 0;
 
 String ds18b20_temp = "";
 String dht11_temp_main = "";
@@ -15,23 +18,34 @@ String dht11_hum_fraction = "";
 String pulse_bpm = "";
 String smsMessage;
 int alreadyReceived = 0;
-Vector rawAccel;
-Vector normAccel;
+bool isReadyForSms = false;
 
 void setup()
 {
   SIM900A.begin(115200);   // Setting the baud rate of GSM Module  
   Serial.begin(9600);    // Setting the baud rate of Serial Monitor (Arduino)
   Serial.println ("SIM900A Ready");
-  Serial.println("Initialize MPU6050");
 
-  while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
-  {
-    Serial.println("Could not find a valid MPU6050 sensor, check wiring!");
-    delay(500);
+  // Try to initialize!
+  if (!mpu.begin()) {
+    Serial.println("Failed to find MPU6050 chip");
+    while (1) {
+      delay(10);
+    }
   }
-  
+  Serial.println("MPU6050 Found!");
+
+    // set accelerometer range to +-8G
+  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+
+  // set gyro range to +- 500 deg/s
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+
+  // set filter bandwidth to 21 Hz
+  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+
   delay(100);
+  
   pinMode(0,INPUT);
   pinMode(1,OUTPUT);
   Serial.println ("Transferring data from ATMega32 to Arduino...");
@@ -59,12 +73,45 @@ void SendMessage()
 
 void loop()
 {
-  if (Serial.available()>0 && alreadyReceived == 0)
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
+  delay(250);
+  Serial.println(a.acceleration.z, 6);
+
+  if(footstep % 10 == 0 && isReadyForSms){
+    isReadyForSms = false;
+    smsMessage = smsMessage + "Footstep: " + footstep;
+
+    //Serial.println("\n");
+    Serial.println(smsMessage);
+    SendMessage();
+  }
+
+  if(delay_cnt%5 == 0 && (a.acceleration.z > 11.0 || a.acceleration.z < 10.3)){
+      delay_cnt++;
+      footstep++;
+      Serial.print("footstep = ");
+      Serial.println(footstep);
+
+      if(footstep % 10 == 0){
+        isReadyForSms = true; 
+      }
+   }
+   else if(delay_cnt%5 == 0 && (a.acceleration.z <= 11.0 && a.acceleration.z >= 10.3)){}
+   else{
+      delay_cnt++;
+   }
+
+  
+  /*if (Serial.available()>0 && alreadyReceived == 0)
   {
     pulse_bpm = Serial.readString();
     Serial.print("pulse_bpm: ");
     Serial.print(pulse_bpm);
     Serial.println("");
+
+    //smsMessage = Serial.readString();
+    //Serial.println(smsMessage);    
     alreadyReceived = 1;
 
     dht11_temp_main = Serial.readString();
@@ -90,24 +137,17 @@ void loop()
     ds18b20_temp = Serial.readString();
     Serial.print("ds18b20_temp: ");
     Serial.print(ds18b20_temp);
-    Serial.println("");
-
-
-    rawAccel = mpu.readRawAccel();
-    normAccel = mpu.readNormalizeAccel();    
+    Serial.println("");    
 
     smsMessage = "Temperature: " + dht11_temp_main + "." + dht11_temp_fraction + "C\n";
     smsMessage = smsMessage + "Humidity: " + dht11_hum_main + "." + dht11_hum_fraction + "%\n";
     smsMessage = smsMessage + "Body Temperature: " + ds18b20_temp + "C\n";
     smsMessage = smsMessage + "Pulse Rate: " + pulse_bpm + " bpm\n";
-    smsMessage = smsMessage + "Xraw = " + rawAccel.XAxis + ", Xnorm = " + normAccel.XAxis + "\n";
-    smsMessage = smsMessage + "Yraw = " + rawAccel.YAxis + ", Ynorm = " + normAccel.YAxis + "\n";
-    smsMessage = smsMessage + "Zraw = " + rawAccel.ZAxis + ", Znorm = " + normAccel.ZAxis + "\n";
 
     Serial.println("\n");
     Serial.println(smsMessage);
     //SendMessage();    
-  }
+  }*/
 
   /*if (SIM900A.available()>0){
    Serial.write(SIM900A.read());

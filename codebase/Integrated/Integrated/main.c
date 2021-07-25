@@ -88,6 +88,23 @@ void uart_send(char data){
 
 void sendToArduino(){
 	//_delay_ms(3000);
+	
+	/*char sms[200];
+	strcpy(sms, "Temperature: ");
+	strcat(sms, dht11_temp_main);
+	strcat(sms, ".");
+	strcat(sms, dht11_temp_fraction);
+	strcat(sms, "C\n");
+	
+	int i = 0;
+	while (sms[i] != 0x00)
+	{
+		uart_send(sms[i]);
+		i++;
+	}
+	
+	_delay_ms(1000);*/
+	
 	int i = 0;
 	while (pulse_bpm[i] != 0x00)
 	{
@@ -97,10 +114,6 @@ void sendToArduino(){
 			
 	_delay_ms(1000);
 	
-	/*char dht11_temp[10];
-	strcpy(dht11_temp, dht11_temp_main);
-	strcat(dht11_temp, ".");
-	strcat(dht11_temp, dht11_temp_fraction);*/
 			
 	i = 0;
 	while (dht11_temp_main[i] != 0x00)
@@ -119,11 +132,6 @@ void sendToArduino(){
 	}
 	
 	_delay_ms(1000);
-	
-	/*char dht11_hum[10];
-	strcpy(dht11_hum, dht11_hum_main);
-	strcat(dht11_hum, ".");
-	strcat(dht11_hum, dht11_hum_fraction);*/
 	
 	i = 0;
 	while (dht11_hum_main[i] != 0x00)
@@ -150,7 +158,7 @@ void sendToArduino(){
 		i++;
 	}
 	
-	_delay_ms(1000);				
+	_delay_ms(1000);			
 }
 
 
@@ -327,6 +335,7 @@ int main(void)
 	
 	while(1)
 	{
+		_delay_ms(2000);
 		reading_cnt++;
 		Request();				
 		Response();				
@@ -404,8 +413,9 @@ int main(void)
 		lcd_gotoxy(13,0);
 		lcd_puts(pulse_bpm);
 		
-		if(reading_cnt % 5 == 0){
+		if(reading_cnt % 2 == 0){
 			sendToArduino();
+			_delay_ms(2000);
 		}	
 				
 	}
