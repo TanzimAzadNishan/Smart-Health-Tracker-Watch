@@ -20,6 +20,8 @@ String smsMessage;
 int alreadyReceived = 0;
 bool isReadyForSms = false;
 
+float acceleration;
+
 void setup()
 {
   SIM900A.begin(115200);   // Setting the baud rate of GSM Module  
@@ -78,14 +80,17 @@ void loop()
   delay(250);
   Serial.println(a.acceleration.z, 6);
 
-  if(footstep % 10 == 0 && isReadyForSms){
+  //acceleration = sqrt(pow(a.acceleration.x, 2) + pow(a.acceleration.y, 2) + pow(a.acceleration.z, 2));
+  //Serial.println(acceleration, 6);
+
+  /*if(footstep % 10 == 0 && isReadyForSms){
     isReadyForSms = false;
     smsMessage = smsMessage + "Footstep: " + footstep;
 
     //Serial.println("\n");
-    Serial.println(smsMessage);
-    SendMessage();
-  }
+    //Serial.println(smsMessage);
+    //SendMessage();
+  }*/
 
   if(delay_cnt%5 == 0 && (a.acceleration.z > 11.0 || a.acceleration.z < 10.3)){
       delay_cnt++;

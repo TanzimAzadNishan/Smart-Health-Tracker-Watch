@@ -5,7 +5,7 @@
 extern void lcd_backlight(char on);   //not in lcd.h
 
 #include <stdlib.h>       //for itoa()
-
+#include <stdbool.h>
 #include <stdio.h>
 #define DHT11_PIN 6
 
@@ -36,15 +36,18 @@ uint8_t c=0,I_RH,D_RH,I_Temp,D_Temp,CheckSum;
 #define THERM_CMD_ALARMSEARCH 0xec
 
 
-char disp[16]="0000000000000001";
-char result[8] = "00000001";
+//char disp[16]="0000000000000001";
+//char result[8] = "00000001";
 char ds18b20_temp[14];
 char dht11_temp_main[5];
 char dht11_temp_fraction[5];
 char dht11_hum_main[5];
 char dht11_hum_fraction[5];
 char pulse_bpm[4];
-int reading_cnt = 0;
+int noOfPulse = 0;
+uint16_t thresh=550;
+int bpm_count=0;
+bool isPulseDetected = false;
 
 
 void ADC_Init(){
@@ -265,6 +268,8 @@ void therm_read_temperature(){
 	
 	lcd_gotoxy(3,1);
 	lcd_puts(ds18b20_temp);
+	lcd_gotoxy(8,1);
+	lcd_puts(" ");
 }
 
 
@@ -309,8 +314,6 @@ int main(void)
 	_delay_ms(200);
 	lcd_backlight(1);
 	_delay_ms(200);
-	
-	//char data[5];
 
 	lcd_clrscr();
 	lcd_gotoxy(0,0);
@@ -335,8 +338,12 @@ int main(void)
 	
 	while(1)
 	{
-		_delay_ms(2000);
-		reading_cnt++;
+		/*noOfPulse++;
+		char val[5];
+		itoa(noOfPulse, val, 10);
+		lcd_gotoxy(7,0);
+		lcd_puts(val);*/		
+		
 		Request();				
 		Response();				
 		I_RH=Receive_data();	
@@ -372,51 +379,39 @@ int main(void)
 			lcd_puts("C");
 		}
 		    
-		_delay_ms(300);
+		_delay_ms(50);
 		
 		therm_read_temperature();
-		_delay_ms(300);
+		_delay_ms(50);		
 		
-		int i = 0;
-		uint16_t thresh=550;
-		int count=0;
-		int counted = 0;
-	
-		double sampling_rate= 0.100 ;
-		int time_limit = 10 ;
-	
-		int h=0;
-		int l=1023;
-	
-		//char val[4];
+		noOfPulse++;
+		if(noOfPulse % 23 == 0){
+			noOfPulse = 0;
+			if(bpm_count > 16){
+				bpm_count = 16;
+			}
+			itoa(bpm_count*6,pulse_bpm,10);
 		
-		for(i = 0; i < 38; i++){
+			lcd_gotoxy(13,0);
+			lcd_puts(pulse_bpm);
+			bpm_count=0;
+			isPulseDetected = false;
+			//_delay_ms(50);			
+		}
+		else{
+			uint16_t adc_volt = ADC_Read(0);
 			
-			char temp[11]="";
-			char ccount[3];
-
-			uint16_t a=ADC_Read(0);
-		
-			if(a>thresh && counted == 0){
-				count+=1;
-				counted = 1;
+			if(adc_volt > thresh && !isPulseDetected){
+				bpm_count+=1;
+				isPulseDetected = true;
 			}
 			else{
-				counted = 0;
+				isPulseDetected = false;
 			}
-
-			_delay_ms(200);
+			_delay_ms(50);			
 		}
 		
-		itoa(count*6,pulse_bpm,10);
-		
-		lcd_gotoxy(13,0);
-		lcd_puts(pulse_bpm);
-		
-		if(reading_cnt % 2 == 0){
-			sendToArduino();
-			_delay_ms(2000);
-		}	
+		_delay_ms(50);
 				
 	}
 }
