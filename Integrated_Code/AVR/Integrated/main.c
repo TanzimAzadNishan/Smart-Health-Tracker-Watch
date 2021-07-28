@@ -48,6 +48,7 @@ int noOfPulse = 0;
 uint16_t thresh=550;
 int bpm_count=0;
 bool isPulseDetected = false;
+bool isReadyForSms = false;
 
 
 void ADC_Init(){
@@ -90,74 +91,28 @@ void uart_send(char data){
 }
 
 void sendToArduino(){
-	//_delay_ms(3000);
-	
-	/*char sms[200];
-	strcpy(sms, "Temperature: ");
+	char sms[200] = "Temperature: ";
 	strcat(sms, dht11_temp_main);
 	strcat(sms, ".");
 	strcat(sms, dht11_temp_fraction);
 	strcat(sms, "C\n");
+	strcat(sms, "Humidity: ");
+	strcat(sms, dht11_hum_main);
+	strcat(sms, ".");
+	strcat(sms, dht11_hum_fraction);
+	strcat(sms, "%\n");
+	strcat(sms, "Body Temperature: ");
+	strcat(sms, ds18b20_temp);
+	strcat(sms, "C\n");
+	strcat(sms, "Pulse Rate: ");
+	strcat(sms, pulse_bpm);
+	strcat(sms, " bpm\n");
 	
 	int i = 0;
 	while (sms[i] != 0x00)
 	{
 		uart_send(sms[i]);
-		i++;
-	}
-	
-	_delay_ms(1000);*/
-	
-	int i = 0;
-	while (pulse_bpm[i] != 0x00)
-	{
-		uart_send(pulse_bpm[i]);
-		i++;
-	}
-			
-	_delay_ms(1000);
-	
-			
-	i = 0;
-	while (dht11_temp_main[i] != 0x00)
-	{
-		uart_send(dht11_temp_main[i]);
-		i++;
-	}
-			
-	_delay_ms(1000);
-
-	i = 0;
-	while (dht11_temp_fraction[i] != 0x00)
-	{
-		uart_send(dht11_temp_fraction[i]);
-		i++;
-	}
-	
-	_delay_ms(1000);
-	
-	i = 0;
-	while (dht11_hum_main[i] != 0x00)
-	{
-		uart_send(dht11_hum_main[i]);
-		i++;
-	}
-	
-	_delay_ms(1000);
-	
-	i = 0;
-	while (dht11_hum_fraction[i] != 0x00)
-	{
-		uart_send(dht11_hum_fraction[i]);
-		i++;
-	}
-	
-	_delay_ms(1000);
-	
-	i = 0;
-	while (ds18b20_temp[i] != 0x00)
-	{
-		uart_send(ds18b20_temp[i]);
+		//_delay_ms(500);
 		i++;
 	}
 	
@@ -410,6 +365,20 @@ int main(void)
 			}
 			_delay_ms(50);			
 		}
+		
+		if(noOfPulse % 10 == 0){
+			isReadyForSms = true;
+		}
+		if(isReadyForSms){
+			lcd_gotoxy(7,0);
+			lcd_puts("Y");
+			isReadyForSms = false;
+			sendToArduino();
+		}
+		else{
+			lcd_gotoxy(7,0);
+			lcd_puts("N");
+		}		
 		
 		_delay_ms(50);
 				
