@@ -1,0 +1,3 @@
+We have connected 3 sensors with atmega32 such as dht11, ds18b20 and pulse sendor. dht11 gives us surrounding temp and humidity. With these readings the user immidiately knows the condition of the weather. He/She can decide whether to take rest/ burn more calorie depending on the weather.
+ds18b20 gives the body temp which notifies the user of his/her internal body condition.Pulse sensor gives the pulse rate which indicates to the heart condition of the user. So, the user can take necessary action with the help of these readings.
+These readings are then transmitted to Arduino uno through uart serial communication. Arduino receives those readings through rx pin.

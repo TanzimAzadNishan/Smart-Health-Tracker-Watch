@@ -1,0 +1,3 @@
+We have connected MPU6050 and gsm module to arduino uno. We can measure footstep with mpu. However, the user can be a senior citizen.
+He/She can set the mobile no of his/her caretaker. So, our watch can send the health and surrounding condition to the caretaker through sms after a certain interval. 
+Besides, if the user has a sudden fall detected by MPU, the caretaker will get instant sms and be notified after a short interval.
