@@ -42,3 +42,11 @@ CSE 316 Microcontroller Term Project
 ```diff
 + Integrated_Code folder contains the final code
 ```
+
+
+
+## **Developers**
+#### [Md. Tanzim Azad](https://github.com/TanzimAzadNishan)
+#### [Muhtasim Alif](https://github.com/Alif108)
+#### [Saadman Ahmed](https://github.com/stebaratheon)
+
