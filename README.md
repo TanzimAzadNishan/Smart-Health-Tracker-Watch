@@ -43,13 +43,13 @@ CSE 316 Microcontroller Term Project
 + Integrated_Code folder contains the final code
 ```
 
-
+<br /><br />
 ## **Project Demo**
-[![](https://github.com/TanzimAzadNishan/Smart-Health-Tracker-Watch/blob/main/Thumbnail.png)](https://www.youtube.com/watch?v=FwpHMv3SjCM)
+[![](https://github.com/TanzimAzadNishan/Smart-Health-Tracker-Watch/blob/main/Thumbnail.png =400x300)](https://www.youtube.com/watch?v=FwpHMv3SjCM)
 
 
 
-
+<br /><br />
 ## **Developers**
 #### [Md. Tanzim Azad](https://github.com/TanzimAzadNishan)
 #### [Muhtasim Alif](https://github.com/Alif108)
