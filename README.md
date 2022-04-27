@@ -45,7 +45,7 @@ CSE 316 Microcontroller Term Project
 
 <br /><br />
 ## **Project Demo**
-[![](https://github.com/TanzimAzadNishan/Smart-Health-Tracker-Watch/blob/main/Thumbnail.png =400x300)](https://www.youtube.com/watch?v=FwpHMv3SjCM)
+[![](https://github.com/TanzimAzadNishan/Smart-Health-Tracker-Watch/blob/main/Thumbnail.png)](https://www.youtube.com/watch?v=FwpHMv3SjCM)
 
 
 
